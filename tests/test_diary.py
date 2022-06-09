@@ -1,13 +1,16 @@
 import unittest
 from datetime import datetime, timedelta
 
-from diary.core import Record
+from diary.core import Diary
 
 
-class TestRecord(unittest.TestCase):
-    def test_create(self):
+class TestDiary(unittest.TestCase):
+    def test_add(self):
+        diary = Diary("name", [])
         now = datetime.now()
-        record = Record.create("hello")
+        diary.add("hello")
+        self.assertEqual(len(diary.records), 1)
+        record = diary.records[0]
         self.assertAlmostEqual(record.time, now, delta=timedelta(seconds=1))
         self.assertEqual(record.text, "hello")
 
