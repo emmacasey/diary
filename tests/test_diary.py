@@ -8,8 +8,8 @@ from diary.core import Diary, Record
 
 class TestDiary(unittest.TestCase):
     def setUp(self):
-        self.record1 = Record("2001-12-25 00:00:00-06:39", "entry1")
-        self.record2 = Record("2002-12-25 00:00:00-06:39", "entry2")
+        self.record1 = Record("2001-12-25 00:00:00-06:39", "entry1", {})
+        self.record2 = Record("2002-12-25 00:00:00-06:39", "entry2", {"number": 0})
         self.diary = Diary("name", [self.record1, self.record2])
 
     def test_add(self):

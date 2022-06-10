@@ -2,18 +2,25 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import TextIO
 import json
+import re
 
 
 @dataclass
 class Record:
-    """Individual diary entry record."""
+    """Individual diary entry record.
+    To instantiate pass the text to .create(), this will auto-populate the current date
+    and will detect numbers written in the form `#keyword 10.0`."""
 
     timestamp: str
     text: str
+    numbers: dict[str, float]
 
     @classmethod
     def create(cls, text: str) -> "Record":
-        return cls(datetime.now().isoformat(), text)
+        numbers = {
+            name: float(num) for name, num in re.findall(r"#(\w+) (\d+\.?\d*)", text)
+        }
+        return cls(datetime.now().isoformat(), text, numbers)
 
     def __str__(self) -> str:
         return f"{self.timestamp} - {self.text}"
