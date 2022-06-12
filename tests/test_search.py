@@ -12,9 +12,9 @@ from diary.search import strict_search
 class TestSeach(unittest.TestCase):
     def setUp(self):
         self.record1 = Record("2001-12-25", "spam", {})
-        self.record2 = Record("2002-12-25", "spam eggs", {"number": 0})
+        self.record2 = Record("2002-12-25", "spam eggs", {"metric": 0})
         self.record3 = Record("2003-12-25", "eggs beans sausage spam", {"tag": 1})
-        self.record4 = Record("2004-12-25", "beans spam egg spam", {"number": 10})
+        self.record4 = Record("2004-12-25", "beans spam egg spam", {"metric": 10})
         self.diary = Diary(
             "name",
             [

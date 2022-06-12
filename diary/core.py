@@ -9,18 +9,19 @@ import re
 class Record:
     """Individual diary entry record.
     To instantiate pass the text to .create(), this will auto-populate the current date
-    and will detect numbers written in the form `#keyword 10.0`."""
+    and will detect metrics written in the form `#keyword 10.0`."""
 
     timestamp: str
     text: str
-    numbers: dict[str, float]
+    metrics: dict[str, float]
 
     @classmethod
     def create(cls, text: str) -> "Record":
-        numbers = {
-            name: float(num) for name, num in re.findall(r"#(\w+) (\d+\.?\d*)", text)
+        metrics = {
+            metric: float(value)
+            for metric, value in re.findall(r"#(\w+) (\d+\.?\d*)", text)
         }
-        return cls(datetime.now().isoformat(), text, numbers)
+        return cls(datetime.now().isoformat(), text, metrics)
 
     def __str__(self) -> str:
         return f"{self.timestamp} - {self.text}"

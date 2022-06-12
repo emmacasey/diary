@@ -2,10 +2,10 @@ import argparse
 from diary.core import Diary
 
 parser = argparse.ArgumentParser(
-    description="Read the numbers tagged with a given name from a file-backed diary."
+    description="Read the metrics tagged with a given name from a file-backed diary."
 )
 parser.add_argument("file", type=str, help="filename")
-parser.add_argument("tag", type=str, help="tagname for the numbers")
+parser.add_argument("tag", type=str, help="tagname for the metrics")
 parser.add_argument(
     "-v",
     "--verbose",
@@ -20,7 +20,7 @@ with open(args.file, "r") as f:
 print(diary.name)
 
 for record in diary.records:
-    if args.tag in record.numbers:
-        print(record.timestamp, record.numbers[args.tag])
+    if args.tag in record.metrics:
+        print(record.timestamp, record.metrics[args.tag])
     if args.verbose:
         print(record)
