@@ -9,7 +9,9 @@ import re
 class Record:
     """Individual diary entry record.
     To instantiate pass the text to .create(), this will auto-populate the current date
-    and will detect metrics written in the form `#keyword 10.0`."""
+    and will detect metrics written in the form `#keyword 10.0`.
+    Timestamp is a string in iso format to allow stringwise comparison.
+    """
 
     timestamp: str
     text: str
