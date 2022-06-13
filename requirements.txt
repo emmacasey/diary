@@ -1,3 +1,8 @@
-black
-mypy
--e .
+click==8.1.3
+colorama==0.4.4
+-e git+https://github.com/emmacasey/diary.git@48c21cbb39792f5a9a5715f1c518761736d98f16#egg=Diary
+Flask==2.1.2
+itsdangerous==2.1.2
+Jinja2==3.1.2
+MarkupSafe==2.1.1
+Werkzeug==2.1.2
