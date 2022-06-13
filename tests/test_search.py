@@ -1,9 +1,4 @@
 import unittest
-import tempfile
-from dataclasses import asdict
-from datetime import datetime, timedelta
-
-from black import assert_equivalent
 
 from diary.core import Diary, Record
 from diary.search import strict_search, date_filter, metric_filter
