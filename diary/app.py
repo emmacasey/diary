@@ -10,7 +10,7 @@ def hello_world():
 
 
 @app.route("/read")
-def read():
+def demo_read():
     with open("tmp/test.diary", "r") as f:
         diary = Diary.load(f)
     return render_template("read.html", diary=diary)
