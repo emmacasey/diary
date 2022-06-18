@@ -9,5 +9,5 @@ setup(
     author="Emma Casey",
     author_email="emma.casey@cantab.net",
     packages=["diary"],
-    install_requires=["Flask"],
+    install_requires=["Flask", "wtforms"],
 )
