@@ -9,6 +9,8 @@
         <li><em>{{record.timestamp}}</em> - {{record.text}} {% for metric, value in record['metrics'].items() %}
             <strong>#{{metric}}:</strong> {{value}} {% endfor %}
         </li>
+        {% else %}
+        <p>No entries found.</p>
         {% endfor %}
     </ul>
 </body>
