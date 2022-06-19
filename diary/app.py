@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request
 from wtforms import Form, StringField
+from wtforms.widgets import DateInput
 from diary.core import Diary
-from diary.search import strict_search
+from diary.search import strict_search, date_filter
 
 app = Flask(__name__)
 
@@ -20,6 +21,8 @@ def demo_read():
 
 class SearchForm(Form):
     search_term = StringField("Search Term")
+    before = StringField("Before", widget=DateInput())
+    after = StringField("After", widget=DateInput())
 
 
 @app.route("/search", methods=["GET", "POST"])
@@ -29,6 +32,7 @@ def search():
     form = SearchForm(request.form)
     if request.method == "POST" and form.validate():
         records = strict_search(diary, form.search_term.data)
+        records = date_filter(records, after=form.after.data, before=form.before.data)
         return render_template("search.html", form=form, records=records)
     return render_template("search.html", form=form, records=diary.records)
 

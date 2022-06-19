@@ -17,8 +17,8 @@ def date_filter(
     return [
         record
         for record in records
-        if (before is None or record.timestamp < before)
-        and (after is None or record.timestamp > after)
+        if (not before or record.timestamp < before)
+        and (not after or record.timestamp > after)
     ]
 
 
