@@ -58,16 +58,86 @@ class TestSearch(FromSaveFile):
             "/search",
             data={
                 "search_term": "text1",
+                "after": "",
+                "before": "",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
 
-    def test_empty_search(self):
+    def test_failing_search(self):
         response = self.client.post(
             "/search",
             data={
                 "search_term": "no such",
+                "after": "",
+                "before": "",
             },
         )
         self.assertIn(b"<p>No entries found.</p>", response.data)
+
+    def test_empty_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+            },
+        )
+        self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertIn(b"<em>2001-01-02</em> - text2", response.data)
+
+    def test_after_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "2001-01-02",
+                "before": "",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertIn(b"<em>2001-01-03</em> - text3", response.data)
+
+    def test_before_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "2001-01-02",
+            },
+        )
+        self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertNotIn(b"<em>2001-01-03</em> - text3", response.data)
+
+    def test_between_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "2001-01-02",
+                "before": "2001-01-04",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertIn(b"<em>2001-01-03</em> - text3", response.data)
+        self.assertNotIn(b"<em>2001-01-04</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
+
+    def test_combined_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "text1",
+                "after": "",
+                "before": "2001-01-03",
+            },
+        )
+        self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertNotIn(b"<em>2001-01-04</em> - text1", response.data)
