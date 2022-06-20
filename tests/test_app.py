@@ -1,5 +1,5 @@
 import unittest
-import unittest
+from datetime import datetime, timedelta
 from diary.app import app
 from diary.core import Diary, Record
 
@@ -45,6 +45,31 @@ class TestRead(FromSaveFile):
             b"<strong>#metric:</strong> 1",
             response.data,
         )
+
+
+class TestCreate(FromSaveFile):
+    def test_form(self):
+        response = self.client.get("/create")
+        self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertIn(b"Dear Diary...", response.data)
+        self.assertNotIn(b"text of a newly-created entry", response.data)
+
+    def test_create(self):
+        now = datetime.now()
+        response = self.client.post(
+            "/create",
+            data={
+                "entry_text": "text of a newly-created entry",
+            },
+        )
+        self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
+        self.assertIn(b"text of a newly-created entry", response.data)
+        with open("tmp/test.diary", "r") as f:
+            new_diary = Diary.load(f)
+        record = new_diary.records[-1]
+        self.assertAlmostEqual(record.time, now, delta=timedelta(seconds=1))
+        self.assertEqual(record.text, "text of a newly-created entry")
 
 
 class TestSearch(FromSaveFile):

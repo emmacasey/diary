@@ -30,6 +30,8 @@ def create():
     form = CreateForm(request.form)
     if request.method == "POST" and form.validate():
         diary.add(form.entry_text.data)
+        with open("tmp/test.diary", "w") as f:
+            diary.save(f)
         return render_template("create.html", form=form, diary=diary)
     return render_template("create.html", form=form, diary=diary)
 
