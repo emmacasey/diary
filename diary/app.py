@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from wtforms import Form, StringField
+from wtforms import Form, StringField, TextAreaField
 from wtforms.widgets import DateInput
 from diary.core import Diary
 from diary.search import strict_search, date_filter
@@ -17,6 +17,21 @@ def demo_read():
     with open("tmp/test.diary", "r") as f:
         diary = Diary.load(f)
     return render_template("read.html", diary=diary)
+
+
+class CreateForm(Form):
+    entry_text = TextAreaField("Dear Diary...")
+
+
+@app.route("/create", methods=["GET", "POST"])
+def create():
+    with open("tmp/test.diary", "r") as f:
+        diary = Diary.load(f)
+    form = CreateForm(request.form)
+    if request.method == "POST" and form.validate():
+        diary.add(form.entry_text.data)
+        return render_template("create.html", form=form, diary=diary)
+    return render_template("create.html", form=form, diary=diary)
 
 
 class SearchForm(Form):
