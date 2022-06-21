@@ -49,7 +49,7 @@ class SearchForm(Form):
         if not super().validate():
             return False
 
-        if self.before.data and self.after.data and self.after.data < self.before.data:
+        if self.before.data and self.after.data and self.after.data > self.before.data:
             self.after.errors.append("Inconsistent restrictions")
             self.before.errors.append("Inconsistent restrictions")
             return False

@@ -85,6 +85,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "text1",
                 "after": "",
                 "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
@@ -97,6 +101,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "no such",
                 "after": "",
                 "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"<p>No entries found.</p>", response.data)
@@ -108,6 +116,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "",
                 "after": "",
                 "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
@@ -120,6 +132,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "",
                 "after": "2001-01-02",
                 "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertNotIn(b"<em>2001-01-01</em> - text1", response.data)
@@ -133,6 +149,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "",
                 "after": "not a date",
                 "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"Not a valid date value.", response.data)
@@ -144,6 +164,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "",
                 "after": "",
                 "before": "2001-01-02",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
@@ -157,6 +181,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "",
                 "after": "2001-01-02",
                 "before": "2001-01-04",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertNotIn(b"<em>2001-01-01</em> - text1", response.data)
@@ -165,6 +193,136 @@ class TestSearch(FromSaveFile):
         self.assertNotIn(b"<em>2001-01-04</em> - text1", response.data)
         self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
 
+    def test_inconsitent_date_search(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "2001-01-04",
+                "before": "2001-01-02",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
+            },
+        )
+        self.assertIn(b"Inconsistent restrictions", response.data)
+
+    def test_has_metric(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "metric",
+                "lt": "",
+                "gt": "",
+                "eq": "",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertIn(b"<em>2001-01-03</em> - text3", response.data)
+        self.assertIn(b"<em>2001-01-04</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
+
+    def test_metric_gt(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "metric",
+                "lt": "",
+                "gt": "4",
+                "eq": "",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertNotIn(b"<em>2001-01-03</em> - text3", response.data)
+        self.assertIn(b"<em>2001-01-04</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
+
+    def test_metric_lt(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "metric",
+                "lt": "4",
+                "gt": "",
+                "eq": "",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertIn(b"<em>2001-01-03</em> - text3", response.data)
+        self.assertNotIn(b"<em>2001-01-04</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
+
+    def test_metric_eq(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "metric",
+                "lt": "",
+                "gt": "",
+                "eq": "10",
+            },
+        )
+        self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
+        self.assertNotIn(b"<em>2001-01-03</em> - text3", response.data)
+        self.assertIn(b"<em>2001-01-04</em> - text1", response.data)
+        self.assertNotIn(b"<em>2001-01-05</em> - text2", response.data)
+
+    def test_metric_missing(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "10",
+            },
+        )
+        self.assertIn(b"Metric is required if restrictions are given", response.data)
+
+    def test_metric_inconsitent(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "Metric",
+                "lt": "1",
+                "gt": "",
+                "eq": "10",
+            },
+        )
+        self.assertIn(b"Inconsistent restrictions", response.data)
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "",
+                "before": "",
+                "metric": "Metric",
+                "lt": "1",
+                "gt": "10",
+                "eq": "",
+            },
+        )
+        self.assertIn(b"Inconsistent restrictions", response.data)
+
     def test_combined_search(self):
         response = self.client.post(
             "/search",
@@ -172,6 +330,10 @@ class TestSearch(FromSaveFile):
                 "search_term": "text1",
                 "after": "",
                 "before": "2001-01-03",
+                "metric": "",
+                "lt": "",
+                "gt": "",
+                "eq": "",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
