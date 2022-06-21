@@ -1,10 +1,8 @@
-from attr import Attribute
 from flask import Flask, render_template, request
-from wtforms import Form, StringField, TextAreaField, DateField
+from wtforms import Form, StringField, TextAreaField, DateField, FloatField
 from wtforms.validators import Optional
-from wtforms.widgets import DateInput
 from diary.core import Diary
-from diary.search import strict_search, date_filter
+from diary.search import strict_search, date_filter, metric_filter
 
 app = Flask(__name__)
 
@@ -42,6 +40,34 @@ class SearchForm(Form):
     search_term = StringField("Search Term")
     before = DateField("Before", validators=[Optional()])
     after = DateField("After", validators=[Optional()])
+    metric = StringField("Metric")
+    gt = FloatField("Greater Than", validators=[Optional()])
+    lt = FloatField("Less Than", validators=[Optional()])
+    eq = FloatField("Equals", validators=[Optional()])
+
+    def validate(self):
+        if not super().validate():
+            return False
+
+        if self.before.data and self.after.data and self.after.data < self.before.data:
+            self.after.errors.append("Inconsistent restrictions")
+            self.before.errors.append("Inconsistent restrictions")
+            return False
+
+        if self.gt.data or self.lt.data or self.eq.data:
+            if not self.metric.data:
+                self.metric.errors.append(
+                    "Metric is required if restrictions are given"
+                )
+                return False
+            if self.gt.data and self.lt.data and self.gt.data > self.lt.data:
+                self.gt.errors.append("Inconsistent restrictions")
+                self.lt.errors.append("Inconsistent restrictions")
+                return False
+            if self.eq.data and (self.gt.data or self.lt.data):
+                self.eq.errors.append("Inconsistent restrictions")
+                return False
+        return True
 
 
 @app.route("/search", methods=["GET", "POST"])
@@ -61,6 +87,14 @@ def search():
         except AttributeError:
             before = None
         records = date_filter(records, after=after, before=before)
+        if form.metric.data:
+            records = metric_filter(
+                records,
+                metric=form.metric.data,
+                lt=form.lt.data,
+                gt=form.gt.data,
+                eq=form.eq.data,
+            )
         return render_template("search.html", form=form, records=records)
     return render_template("search.html", form=form, records=diary.records)
 
