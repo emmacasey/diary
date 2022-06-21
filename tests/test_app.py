@@ -126,6 +126,17 @@ class TestSearch(FromSaveFile):
         self.assertNotIn(b"<em>2001-01-02</em> - text2", response.data)
         self.assertIn(b"<em>2001-01-03</em> - text3", response.data)
 
+    def test_bad_date(self):
+        response = self.client.post(
+            "/search",
+            data={
+                "search_term": "",
+                "after": "not a date",
+                "before": "",
+            },
+        )
+        self.assertIn(b"Not a valid date value.", response.data)
+
     def test_before_search(self):
         response = self.client.post(
             "/search",
