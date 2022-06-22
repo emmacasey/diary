@@ -13,5 +13,5 @@ print(diary.name)
 
 while True:
     search_term = input("search:")
-    for record in strict_search(diary, search_term):
-        print(record)
+    for entry in strict_search(diary, search_term):
+        print(entry)

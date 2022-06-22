@@ -19,8 +19,8 @@ with open(args.file, "r") as f:
 
 print(diary.name)
 
-for record in diary.records:
-    if args.tag in record.metrics:
-        print(record.timestamp, record.metrics[args.tag])
+for entry in diary.entries:
+    if args.tag in entry.metrics:
+        print(entry.timestamp, entry.metrics[args.tag])
     if args.verbose:
-        print(record)
+        print(entry)

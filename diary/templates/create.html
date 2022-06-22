@@ -5,8 +5,8 @@
 {% from "_forms.html" import render_form %}
 {{render_form(form,"create")}}
 <ul>
-    {% for record in diary.records %}
-    <li><em>{{record.timestamp}}</em> - {{record.text}} {% for metric, value in record['metrics'].items() %}
+    {% for entry in diary.entries %}
+    <li><em>{{entry.timestamp}}</em> - {{entry.text}} {% for metric, value in entry['metrics'].items() %}
         <strong>#{{metric}}:</strong> {{value}} {% endfor %}
     </li>
     {% endfor %}

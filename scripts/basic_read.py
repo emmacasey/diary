@@ -11,7 +11,7 @@ with open(args.file, "r") as f:
 
 print(diary.name)
 
-for record in diary.records:
-    print(record)
+for entry in diary.entries:
+    print(entry)
     if not args.all:
         input()

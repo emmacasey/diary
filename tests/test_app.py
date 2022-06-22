@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 from diary.app import app
-from diary.core import Diary, Record
+from diary.core import Diary, Entry
 
 
 class TestHome(unittest.TestCase):
@@ -19,11 +19,11 @@ class FromSaveFile(unittest.TestCase):
         self.diary = Diary(
             "diary name",
             [
-                Record("2001-01-01", "text1", {}),
-                Record("2001-01-02", "text2", {}),
-                Record("2001-01-03", "text3", {"metric": 1}),
-                Record("2001-01-04", "text1", {"metric": 10}),
-                Record("2001-01-05", "text2", {"tag": 1}),
+                Entry("2001-01-01", "text1", {}),
+                Entry("2001-01-02", "text2", {}),
+                Entry("2001-01-03", "text3", {"metric": 1}),
+                Entry("2001-01-04", "text1", {"metric": 10}),
+                Entry("2001-01-05", "text2", {"tag": 1}),
             ],
         )
         with open("tmp/test.diary", "w") as f:
@@ -35,7 +35,7 @@ class TestRead(FromSaveFile):
         response = self.client.get("/read")
         self.assertIn(b"<h1>diary name</h1>", response.data)
 
-    def test_read_record(self):
+    def test_read_entry(self):
         response = self.client.get("/read")
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
 
@@ -67,9 +67,9 @@ class TestCreate(FromSaveFile):
         self.assertIn(b"text of a newly-created entry", response.data)
         with open("tmp/test.diary", "r") as f:
             new_diary = Diary.load(f)
-        record = new_diary.records[-1]
-        self.assertAlmostEqual(record.time, now, delta=timedelta(seconds=1))
-        self.assertEqual(record.text, "text of a newly-created entry")
+        entry = new_diary.entries[-1]
+        self.assertAlmostEqual(entry.time, now, delta=timedelta(seconds=1))
+        self.assertEqual(entry.text, "text of a newly-created entry")
 
 
 class TestSearch(FromSaveFile):

@@ -77,7 +77,7 @@ def search():
     form = SearchForm(request.form)
     print(form.data)
     if request.method == "POST" and form.validate():
-        records = strict_search(diary, form.search_term.data)
+        entries = strict_search(diary, form.search_term.data)
         try:
             after = form.after.data.isoformat()
         except AttributeError:
@@ -86,17 +86,17 @@ def search():
             before = form.before.data.isoformat()
         except AttributeError:
             before = None
-        records = date_filter(records, after=after, before=before)
+        entries = date_filter(entries, after=after, before=before)
         if form.metric.data:
-            records = metric_filter(
-                records,
+            entries = metric_filter(
+                entries,
                 metric=form.metric.data,
                 lt=form.lt.data,
                 gt=form.gt.data,
                 eq=form.eq.data,
             )
-        return render_template("search.html", form=form, records=records)
-    return render_template("search.html", form=form, records=diary.records)
+        return render_template("search.html", form=form, entries=entries)
+    return render_template("search.html", form=form, entries=diary.entries)
 
 
 if __name__ == "__main__":

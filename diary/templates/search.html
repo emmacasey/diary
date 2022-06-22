@@ -5,8 +5,8 @@
 {% from "_forms.html" import render_form %}
 {{render_form(form,"search")}}
 <ul>
-    {% for record in records %}
-    <li><em>{{record.timestamp}}</em> - {{record.text}} {% for metric, value in record['metrics'].items() %}
+    {% for entry in entries %}
+    <li><em>{{entry.timestamp}}</em> - {{entry.text}} {% for metric, value in entry['metrics'].items() %}
         <strong>#{{metric}}:</strong> {{value}} {% endfor %}
     </li>
     {% else %}

@@ -6,8 +6,8 @@ import re
 
 
 @dataclass
-class Record:
-    """Individual diary entry record.
+class Entry:
+    """Individual diary entry.
     To instantiate pass the text to .create(), this will auto-populate the current date
     and will detect metrics written in the form `#keyword 10.0`.
     Timestamp is a string in iso format to allow stringwise comparison.
@@ -18,7 +18,7 @@ class Record:
     metrics: dict[str, float]
 
     @classmethod
-    def create(cls, text: str) -> "Record":
+    def create(cls, text: str) -> "Entry":
         metrics = {
             metric: float(value)
             for metric, value in re.findall(r"#(\w+) (\d+\.?\d*)", text)
@@ -38,19 +38,19 @@ class Diary:
     """Diary object."""
 
     name: str
-    records: list[Record]
+    entries: list[Entry]
 
     def add(self, text: str) -> None:
-        self.records.append(Record.create(text))
+        self.entries.append(Entry.create(text))
 
     def __str__(self) -> str:
-        return f"{self.name} with {len(self.records)} entries"
+        return f"{self.name} with {len(self.entries)} entries"
 
     @classmethod
     def from_dict(cls, dump: dict) -> "Diary":
         """The inverse of dataclasses.asdict"""
-        records = [Record(**record_dict) for record_dict in dump["records"]]
-        return Diary(dump["name"], records)
+        entries = [Entry(**entry_dict) for entry_dict in dump["entries"]]
+        return Diary(dump["name"], entries)
 
     def save(self, file: TextIO) -> None:
         json.dump(asdict(self), file, indent=4)
