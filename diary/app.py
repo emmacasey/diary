@@ -9,22 +9,27 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello_world():
+    """Hello world"""
     return render_template("index.html")
 
 
 @app.route("/read")
 def demo_read():
+    """Read entries from the diary saved at tmp/test.diary"""
     with open("tmp/test.diary", "r") as f:
         diary = Diary.load(f)
     return render_template("read.html", diary=diary)
 
 
 class CreateForm(Form):
+    """A wtform to create diary entries, without validation."""
+
     entry_text = TextAreaField("Dear Diary...")
 
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
+    """Create entries in the diary saved at tmp/test.diary and then save it"""
     with open("tmp/test.diary", "r") as f:
         diary = Diary.load(f)
     form = CreateForm(request.form)
@@ -37,6 +42,8 @@ def create():
 
 
 class SearchForm(Form):
+    """A wtform to search diary entries, with simple validation."""
+
     search_term = StringField("Search Term")
     before = DateField("Before", validators=[Optional()])
     after = DateField("After", validators=[Optional()])
@@ -72,6 +79,8 @@ class SearchForm(Form):
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
+    """Search over the entries from the diary saved at tmp/test.diary
+    Including some limited validation to ensure requirements are consistent."""
     with open("tmp/test.diary", "r") as f:
         diary = Diary.load(f)
     form = SearchForm(request.form)

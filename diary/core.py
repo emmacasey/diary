@@ -35,7 +35,10 @@ class Entry:
 
 @dataclass
 class Diary:
-    """Diary object."""
+    """Diary object.
+    Can be converted to/from json format with dataclasses.asdict and cls.from_dict.
+    Can be saved to/loaded from a text file with self.save and cls.load.
+    """
 
     name: str
     entries: list[Entry]
