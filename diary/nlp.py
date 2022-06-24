@@ -1,5 +1,8 @@
 import nltk
 
+nltk.download("punkt")
+nltk.download("stopwords")
+
 stemmer = nltk.PorterStemmer()
 stopwords = nltk.corpus.stopwords.words("english")
 

@@ -11,7 +11,3 @@ setup(
     packages=["diary"],
     install_requires=["Flask", "wtforms", "nltk"],
 )
-import nltk
-
-nltk.download("punkt")
-nltk.download("stopwords")
