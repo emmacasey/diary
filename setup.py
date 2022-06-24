@@ -9,5 +9,9 @@ setup(
     author="Emma Casey",
     author_email="emma.casey@cantab.net",
     packages=["diary"],
-    install_requires=["Flask", "wtforms"],
+    install_requires=["Flask", "wtforms", "nltk"],
 )
+import nltk
+
+nltk.download("punkt")
+nltk.download("stopwords")
