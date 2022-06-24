@@ -26,7 +26,7 @@ class FromSaveFile(unittest.TestCase):
                 Entry("2001-01-05", "text2", {"tag": 1}),
             ],
         )
-        with open("tmp/test.diary", "w") as f:
+        with open("tests/test.diary", "w") as f:
             self.diary.save(f)
 
 
@@ -65,7 +65,7 @@ class TestCreate(FromSaveFile):
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertIn(b"text of a newly-created entry", response.data)
-        with open("tmp/test.diary", "r") as f:
+        with open("tests/test.diary", "r") as f:
             new_diary = Diary.load(f)
         entry = new_diary.entries[-1]
         self.assertAlmostEqual(entry.time, now, delta=timedelta(seconds=1))

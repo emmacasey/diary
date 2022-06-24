@@ -15,8 +15,8 @@ def hello_world():
 
 @app.route("/read")
 def demo_read():
-    """Read entries from the diary saved at tmp/test.diary"""
-    with open("tmp/test.diary", "r") as f:
+    """Read entries from the diary saved at tests/test.diary"""
+    with open("tests/test.diary", "r") as f:
         diary = Diary.load(f)
     return render_template("read.html", diary=diary)
 
@@ -29,13 +29,13 @@ class CreateForm(Form):
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
-    """Create entries in the diary saved at tmp/test.diary and then save it"""
-    with open("tmp/test.diary", "r") as f:
+    """Create entries in the diary saved at tests/test.diary and then save it"""
+    with open("tests/test.diary", "r") as f:
         diary = Diary.load(f)
     form = CreateForm(request.form)
     if request.method == "POST" and form.validate():
         diary.add(form.entry_text.data)
-        with open("tmp/test.diary", "w") as f:
+        with open("tests/test.diary", "w") as f:
             diary.save(f)
         return render_template("create.html", form=form, diary=diary)
     return render_template("create.html", form=form, diary=diary)
@@ -79,9 +79,9 @@ class SearchForm(Form):
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
-    """Search over the entries from the diary saved at tmp/test.diary
+    """Search over the entries from the diary saved at tests/test.diary
     Including some limited validation to ensure requirements are consistent."""
-    with open("tmp/test.diary", "r") as f:
+    with open("tests/test.diary", "r") as f:
         diary = Diary.load(f)
     form = SearchForm(request.form)
     print(form.data)
