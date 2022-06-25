@@ -4,6 +4,8 @@ from typing import TextIO
 import json
 import re
 
+from .utils import default_uuid
+
 
 @dataclass
 class Entry:
@@ -16,6 +18,7 @@ class Entry:
     timestamp: str
     text: str
     metrics: dict[str, float]
+    uuid: str = default_uuid
 
     @classmethod
     def create(cls, text: str) -> "Entry":
@@ -42,6 +45,7 @@ class Diary:
 
     name: str
     entries: list[Entry]
+    uuid: str = default_uuid
 
     def add(self, text: str) -> None:
         self.entries.append(Entry.create(text))
@@ -52,8 +56,9 @@ class Diary:
     @classmethod
     def from_dict(cls, dump: dict) -> "Diary":
         """The inverse of dataclasses.asdict"""
-        entries = [Entry(**entry_dict) for entry_dict in dump["entries"]]
-        return Diary(dump["name"], entries)
+        entry_dicts = dump.pop("entries")
+        entries = [Entry(**entry_dict) for entry_dict in entry_dicts]
+        return Diary(entries=entries, **dump)
 
     def save(self, file: TextIO) -> None:
         json.dump(asdict(self), file, indent=4)

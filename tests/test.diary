@@ -4,33 +4,39 @@
         {
             "timestamp": "2001-01-01",
             "text": "text1",
-            "metrics": {}
+            "metrics": {},
+            "uuid": "259c7c98-0f23-482c-b335-e7bc0c5cd8aa"
         },
         {
             "timestamp": "2001-01-02",
             "text": "text2",
-            "metrics": {}
+            "metrics": {},
+            "uuid": "f40f4fa3-8db4-40ed-b94f-e21e9ebbcd96"
         },
         {
             "timestamp": "2001-01-03",
             "text": "text3",
             "metrics": {
                 "metric": 1
-            }
+            },
+            "uuid": "963238d6-f24e-4589-902a-08c6e05fbf15"
         },
         {
             "timestamp": "2001-01-04",
             "text": "text1",
             "metrics": {
                 "metric": 10
-            }
+            },
+            "uuid": "564311eb-521c-4e50-a829-e76a1b8a0fc8"
         },
         {
             "timestamp": "2001-01-05",
             "text": "text2",
             "metrics": {
                 "tag": 1
-            }
+            },
+            "uuid": "6f8a2fda-723c-4576-b636-57feaa4d5334"
         }
-    ]
+    ],
+    "uuid": "66a5dd96-679f-4ddf-b867-92d3e3aba29d"
 }
