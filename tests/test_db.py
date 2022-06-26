@@ -31,7 +31,7 @@ class TestDB(unittest.TestCase):
         with self.assertRaises(sqlite3.DatabaseError):
             create_diary(self.diary)
         with self.assertRaises(sqlite3.DatabaseError):
-            create_entry(self.entry1)
+            create_entry(self.diary.uuid, self.entry1)
 
 
 if __name__ == "__main__":
