@@ -51,6 +51,18 @@ def create_diary(cur, diary: Diary) -> None:
 
 
 @with_db
+def create_entry(cur, diary_uuid: str, entry: Entry) -> None:
+    cur.execute(
+        "INSERT INTO entry VALUES (?, ?, ?, ?)",
+        (entry.uuid, diary_uuid, entry.timestamp, entry.text),
+    )
+    cur.executemany(
+        "INSERT INTO metric VALUES (?, ?, ?)",
+        [(entry.uuid, metric, value) for metric, value in entry.metrics.items()],
+    )
+
+
+@with_db
 def load_diary(cur, uuid: str) -> Diary:
     cur.execute("SELECT * FROM diary WHERE uuid=:uuid", {"uuid": uuid})
     _, name = cur.fetchone()
