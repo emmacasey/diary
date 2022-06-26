@@ -9,7 +9,9 @@ from diary.core import Diary, Entry
 class TestDiary(unittest.TestCase):
     def setUp(self):
         self.entry1 = Entry("2001-12-25 00:00:00-06:39", "entry1", {})
-        self.entry2 = Entry("2002-12-25 00:00:00-06:39", "entry2", {"metric": 0})
+        self.entry2 = Entry(
+            "2002-12-25 00:00:00-06:39", "entry2", {"metric": 0, "tag": 2}
+        )
         self.diary = Diary("name", [self.entry1, self.entry2])
 
     def test_add(self):
