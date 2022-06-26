@@ -1,9 +1,14 @@
 import sqlite3
+from functools import wraps
 
 from .core import Diary, Entry
 
 
 def with_db(func):
+    """Convenience wrapper for DB functions.
+    If the DB doesn't exist initialise it."""
+
+    @wraps(func)
     def wrapped_func(*args, **kwargs):
         try:
             con = sqlite3.connect("file:tmp/main.db?mode=rw", uri=True)
@@ -12,19 +17,21 @@ def with_db(func):
                 cur = con.cursor()
                 cur.execute(
                     """CREATE TABLE diary
-                        (uuid text, name text)"""
+                        (uuid TEXT PRIMARY KEY, name TEXT)"""
                 )
                 cur.execute(
                     """CREATE TABLE entry
-                        (uuid text, diary text, timestamp text, text text)"""
+                        (uuid TEXT PRIMARY KEY, diary TEXT, timestamp TEXT, text TEXT)"""
                 )
                 cur.execute(
                     """CREATE TABLE metric
-                        (entry text, metric text, value real)"""
+                        (entry TEXT, metric TEXT, value REAL)"""
                 )
-        with con:
-            result = func(con.cursor(), *args, **kwargs)
-        con.close()
+        try:
+            with con:
+                result = func(con.cursor(), *args, **kwargs)
+        finally:
+            con.close()
         return result
 
     return wrapped_func
@@ -32,6 +39,7 @@ def with_db(func):
 
 @with_db
 def create_diary(cur, diary: Diary) -> None:
+    """Save a diary to the database"""
     cur.execute("INSERT INTO diary VALUES (?,?)", (diary.uuid, diary.name))
     cur.executemany(
         "INSERT INTO entry VALUES (?, ?, ?, ?)",
@@ -52,6 +60,7 @@ def create_diary(cur, diary: Diary) -> None:
 
 @with_db
 def create_entry(cur, diary_uuid: str, entry: Entry) -> None:
+    """Create a new Entry record in the database"""
     cur.execute(
         "INSERT INTO entry VALUES (?, ?, ?, ?)",
         (entry.uuid, diary_uuid, entry.timestamp, entry.text),
@@ -62,8 +71,14 @@ def create_entry(cur, diary_uuid: str, entry: Entry) -> None:
     )
 
 
+def update_diary(diary: Diary) -> None:
+    """Update the DB to reflect the latest Entry"""
+    create_entry(diary.uuid, diary.entries[-1])
+
+
 @with_db
 def load_diary(cur, uuid: str) -> Diary:
+    """Load a Diary from the database given a uuid"""
     cur.execute("SELECT * FROM diary WHERE uuid=:uuid", {"uuid": uuid})
     _, name = cur.fetchone()
 

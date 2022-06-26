@@ -1,3 +1,4 @@
+import sqlite3
 import unittest
 
 from diary.core import Diary, Entry
@@ -24,6 +25,13 @@ class TestDB(unittest.TestCase):
         diary = load_diary(self.diary.uuid)
         self.assertEquals(len(diary.entries), 4)
         self.assertEqual(diary.entries[-1], self.entry4)
+
+    def test_uniqueness(self):
+        create_diary(self.diary)
+        with self.assertRaises(sqlite3.DatabaseError):
+            create_diary(self.diary)
+        with self.assertRaises(sqlite3.DatabaseError):
+            create_entry(self.entry1)
 
 
 if __name__ == "__main__":
