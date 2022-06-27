@@ -1,8 +1,16 @@
+from datetime import datetime
+import base64
+from io import BytesIO
+
+
+from matplotlib.figure import Figure
 from flask import Flask, render_template, request
 from wtforms import Form, StringField, TextAreaField, DateField, FloatField
 from wtforms.validators import Optional
+
 from diary.core import Diary
 from diary.search import strict_search, date_filter, metric_filter
+from diary.nlp import stats
 
 app = Flask(__name__)
 
@@ -19,6 +27,37 @@ def demo_read():
     with open("tests/test.diary", "r") as f:
         diary = Diary.load(f)
     return render_template("read.html", diary=diary)
+
+
+def plot_to_base64(X, Y) -> str:
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot(X, Y)
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    return base64.b64encode(buf.getbuffer()).decode("ascii")
+
+
+@app.route("/graphs")
+def demo_graph():
+    """Make graphs of metrics and stats from the diary saved at tests/dracula.diary"""
+    with open("tests/dracula.diary", "r") as f:
+        diary = Diary.load(f)
+    metrics: dict[str, tuple[list[datetime], list[float]]] = {}
+    for entry in diary.entries:
+        entry_stats = stats(entry.text) | entry.metrics
+        for metric, value in entry_stats.items():
+            try:
+                metrics[metric][0].append(entry.time)
+                metrics[metric][1].append(value)
+            except KeyError:
+                metrics[metric] = ([entry.time], [value])
+
+    graphs: dict[str, str] = {}
+    for metric, (X, Y) in metrics.items():
+        graphs[metric] = plot_to_base64(X, Y)
+
+    return render_template("graphs.html", diary=diary, graphs=graphs)
 
 
 class CreateForm(Form):
