@@ -3,6 +3,16 @@ from functools import wraps
 
 from .core import Diary, Entry
 
+DB_ADDRESS = "tmp/main.db"
+
+
+def drop_db(adress: str):
+    with sqlite3.connect(adress) as con:
+        cur = con.cursor()
+        cur.execute("DELETE FROM diary")
+        cur.execute("DELETE FROM entry")
+        cur.execute("DELETE FROM metric")
+
 
 def with_db(func):
     """Convenience wrapper for DB functions.
@@ -11,13 +21,13 @@ def with_db(func):
     @wraps(func)
     def wrapped_func(*args, **kwargs):
         try:
-            con = sqlite3.connect("file:tmp/main.db?mode=rw", uri=True)
+            con = sqlite3.connect(f"file:{DB_ADDRESS}?mode=rw", uri=True)
         except sqlite3.OperationalError:
-            with sqlite3.connect("tmp/main.db") as con:
+            with sqlite3.connect(DB_ADDRESS) as con:
                 cur = con.cursor()
                 cur.execute(
                     """CREATE TABLE diary
-                        (uuid TEXT PRIMARY KEY, name TEXT)"""
+                        (uuid TEXT PRIMARY KEY, username TEXT UNIQUE, name TEXT)"""
                 )
                 cur.execute(
                     """CREATE TABLE entry
@@ -38,9 +48,9 @@ def with_db(func):
 
 
 @with_db
-def create_diary(cur, diary: Diary) -> None:
+def create_diary(cur, diary: Diary, username: str) -> None:
     """Save a diary to the database"""
-    cur.execute("INSERT INTO diary VALUES (?,?)", (diary.uuid, diary.name))
+    cur.execute("INSERT INTO diary VALUES (?,?,?)", (diary.uuid, username, diary.name))
     cur.executemany(
         "INSERT INTO entry VALUES (?, ?, ?, ?)",
         [
@@ -77,21 +87,25 @@ def update_diary(diary: Diary) -> None:
 
 
 @with_db
-def load_diary(cur, uuid: str) -> Diary:
-    """Load a Diary from the database given a uuid"""
-    cur.execute("SELECT * FROM diary WHERE uuid=:uuid", {"uuid": uuid})
-    _, name = cur.fetchone()
+def load_diary(cur, username: str) -> Diary:
+    """Load a Diary from the database given a username"""
+    cur.execute("SELECT * FROM diary WHERE username=:username", {"username": username})
+    rows = cur.fetchall()
+    if len(rows) == 0:
+        raise LookupError
+    elif len(rows) > 1:
+        sqlite3.IntegrityError
 
+    uuid, _, name = rows[0]
     entries: dict[str, Entry] = {}
     for row in cur.execute(
         "SELECT * FROM entry LEFT JOIN metric ON entry.uuid=metric.entry WHERE diary=? ORDER BY timestamp",
         (uuid,),
     ):
-        print(row)
         entry_uuid, _, timestamp, text, _, key, value = row
         try:
             entry = entries[entry_uuid]
-        except:
+        except KeyError:
             entry = Entry(timestamp=timestamp, text=text, uuid=entry_uuid, metrics={})
             entries[entry_uuid] = entry
         if key:
