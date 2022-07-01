@@ -29,6 +29,13 @@ class FromDB(unittest.TestCase):
             ],
         )
         create_diary(self.diary, "username")
+        wrong_diary = Diary(
+            "wrong name",
+            [
+                Entry("2001-01-01", "wrong entry", {}),
+            ],
+        )
+        create_diary(wrong_diary, "wrong user")
 
     def tearDown(self) -> None:
         drop_db("tmp/main.db")
@@ -49,6 +56,11 @@ class TestRead(FromDB):
             b"<strong>#metric:</strong> 1",
             response.data,
         )
+
+    def test_read_right_user(self):
+        response = self.client.get("/read/username")
+        self.assertNotIn(b"<h1>wrong name</h1>", response.data)
+        self.assertNotIn(b"<em>2001-01-01</em> - wrong entry", response.data)
 
 
 class TestAdd(FromDB):
