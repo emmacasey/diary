@@ -1,11 +1,15 @@
 from flask import Flask, render_template, request
 from wtforms import Form, StringField, TextAreaField, DateField, FloatField
 from wtforms.validators import Optional
+
 from diary.core import Diary
 from diary.db import create_diary, load_diary, update_diary
 from diary.search import strict_search, date_filter, metric_filter
 
+
 app = Flask(__name__)
+
+app.config["DB_ADDRESS"] = "tmp/main.db"
 
 
 @app.route("/")
@@ -19,7 +23,7 @@ def hello_world():
 def read(username):
     """Read entries from the diary associated with a user in the database"""
 
-    diary = load_diary(username)
+    diary = load_diary(app.config["DB_ADDRESS"], username)
     return render_template("read.html", diary=diary)
 
 
@@ -33,13 +37,11 @@ class AddForm(Form):
 def add(username):
     """Add a new entry in the diary associated with a user in the database and then save it"""
 
-    diary = load_diary(username)
+    diary = load_diary(app.config["DB_ADDRESS"], username)
     form = AddForm(request.form)
-    print(diary)
     if request.method == "POST" and form.validate():
         diary.add(form.entry_text.data)
-        print(diary)
-        update_diary(diary)
+        update_diary(app.config["DB_ADDRESS"], diary)
         return render_template("add.html", form=form, diary=diary)
     return render_template("add.html", form=form, diary=diary)
 
@@ -85,7 +87,7 @@ def search(username):
     """Search over the entries from the diary associated with a user in the database
     Including some limited validation to ensure requirements are consistent."""
 
-    diary = load_diary(username)
+    diary = load_diary(app.config["DB_ADDRESS"], username)
     form = SearchForm(request.form)
     if request.method == "POST" and form.validate():
         entries = strict_search(diary, form.search_term.data)

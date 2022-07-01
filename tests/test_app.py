@@ -1,9 +1,12 @@
-from json import load
 import unittest
 from datetime import datetime, timedelta
+
 from diary.app import app
 from diary.core import Diary, Entry
 from diary.db import create_diary, load_diary, drop_db
+
+
+DB_ADDRESS = "tmp/testing.db"
 
 
 class TestHome(unittest.TestCase):
@@ -17,6 +20,8 @@ class TestHome(unittest.TestCase):
 
 class FromDB(unittest.TestCase):
     def setUp(self):
+        app.config["DB_ADDRESS"] = DB_ADDRESS
+        drop_db(DB_ADDRESS)
         self.client = app.test_client()
         self.diary = Diary(
             "diary name",
@@ -28,17 +33,17 @@ class FromDB(unittest.TestCase):
                 Entry("2001-01-05", "text2", {"tag": 1}),
             ],
         )
-        create_diary(self.diary, "username")
+        create_diary(DB_ADDRESS, self.diary, "username")
         wrong_diary = Diary(
             "wrong name",
             [
                 Entry("2001-01-01", "wrong entry", {}),
             ],
         )
-        create_diary(wrong_diary, "wrong user")
+        create_diary(DB_ADDRESS, wrong_diary, "wrong user")
 
     def tearDown(self) -> None:
-        drop_db("tmp/main.db")
+        drop_db(DB_ADDRESS)
 
 
 class TestRead(FromDB):
@@ -81,7 +86,7 @@ class TestAdd(FromDB):
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertIn(b"text of a newly-created entry", response.data)
-        new_diary = load_diary("username")
+        new_diary = load_diary(DB_ADDRESS, "username")
         entry = new_diary.entries[-1]
         self.assertAlmostEqual(entry.time, now, delta=timedelta(seconds=1))
         self.assertEqual(entry.text, "text of a newly-created entry")
