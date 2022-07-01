@@ -1,7 +1,9 @@
+from json import load
 import unittest
 from datetime import datetime, timedelta
 from diary.app import app
 from diary.core import Diary, Entry
+from diary.db import create_diary, load_diary, drop_db
 
 
 class TestHome(unittest.TestCase):
@@ -13,7 +15,7 @@ class TestHome(unittest.TestCase):
         self.assertIn(b"<p>Hello, World!</p>", response.data)
 
 
-class FromSaveFile(unittest.TestCase):
+class FromDB(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
         self.diary = Diary(
@@ -26,30 +28,32 @@ class FromSaveFile(unittest.TestCase):
                 Entry("2001-01-05", "text2", {"tag": 1}),
             ],
         )
-        with open("tests/test.diary", "w") as f:
-            self.diary.save(f)
+        create_diary(self.diary, "username")
+
+    def tearDown(self) -> None:
+        drop_db("tmp/main.db")
 
 
-class TestRead(FromSaveFile):
+class TestRead(FromDB):
     def test_read_title(self):
-        response = self.client.get("/read")
+        response = self.client.get("/read/username")
         self.assertIn(b"<h1>diary name</h1>", response.data)
 
     def test_read_entry(self):
-        response = self.client.get("/read")
+        response = self.client.get("/read/username")
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
 
     def test_read_metric(self):
-        response = self.client.get("/read")
+        response = self.client.get("/read/username")
         self.assertIn(
             b"<strong>#metric:</strong> 1",
             response.data,
         )
 
 
-class TestCreate(FromSaveFile):
+class TestAdd(FromDB):
     def test_form(self):
-        response = self.client.get("/create")
+        response = self.client.get("/add/username")
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertIn(b"<em>2001-01-02</em> - text2", response.data)
         self.assertIn(b"Dear Diary...", response.data)
@@ -58,29 +62,28 @@ class TestCreate(FromSaveFile):
     def test_create(self):
         now = datetime.now()
         response = self.client.post(
-            "/create",
+            "/add/username",
             data={
                 "entry_text": "text of a newly-created entry",
             },
         )
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertIn(b"text of a newly-created entry", response.data)
-        with open("tests/test.diary", "r") as f:
-            new_diary = Diary.load(f)
+        new_diary = load_diary("username")
         entry = new_diary.entries[-1]
         self.assertAlmostEqual(entry.time, now, delta=timedelta(seconds=1))
         self.assertEqual(entry.text, "text of a newly-created entry")
 
 
-class TestSearch(FromSaveFile):
+class TestSearch(FromDB):
     def test_form(self):
-        response = self.client.get("/search")
+        response = self.client.get("/search/username")
         self.assertIn(b"<em>2001-01-01</em> - text1", response.data)
         self.assertIn(b"<em>2001-01-02</em> - text2", response.data)
 
     def test_basic_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "text1",
                 "after": "",
@@ -96,7 +99,7 @@ class TestSearch(FromSaveFile):
 
     def test_failing_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "no such",
                 "after": "",
@@ -111,7 +114,7 @@ class TestSearch(FromSaveFile):
 
     def test_empty_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -127,7 +130,7 @@ class TestSearch(FromSaveFile):
 
     def test_after_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "2001-01-02",
@@ -144,7 +147,7 @@ class TestSearch(FromSaveFile):
 
     def test_bad_date(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "not a date",
@@ -159,7 +162,7 @@ class TestSearch(FromSaveFile):
 
     def test_before_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -176,7 +179,7 @@ class TestSearch(FromSaveFile):
 
     def test_between_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "2001-01-02",
@@ -195,7 +198,7 @@ class TestSearch(FromSaveFile):
 
     def test_inconsitent_date_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "2001-01-04",
@@ -210,7 +213,7 @@ class TestSearch(FromSaveFile):
 
     def test_has_metric(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -228,7 +231,7 @@ class TestSearch(FromSaveFile):
 
     def test_metric_gt(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -246,7 +249,7 @@ class TestSearch(FromSaveFile):
 
     def test_metric_lt(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -264,7 +267,7 @@ class TestSearch(FromSaveFile):
 
     def test_metric_eq(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -282,7 +285,7 @@ class TestSearch(FromSaveFile):
 
     def test_metric_missing(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -297,7 +300,7 @@ class TestSearch(FromSaveFile):
 
     def test_metric_inconsitent(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -310,7 +313,7 @@ class TestSearch(FromSaveFile):
         )
         self.assertIn(b"Inconsistent restrictions", response.data)
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "",
                 "after": "",
@@ -325,7 +328,7 @@ class TestSearch(FromSaveFile):
 
     def test_combined_search(self):
         response = self.client.post(
-            "/search",
+            "/search/username",
             data={
                 "search_term": "text1",
                 "after": "",

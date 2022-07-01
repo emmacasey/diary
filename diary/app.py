@@ -35,8 +35,10 @@ def add(username):
 
     diary = load_diary(username)
     form = AddForm(request.form)
+    print(diary)
     if request.method == "POST" and form.validate():
         diary.add(form.entry_text.data)
+        print(diary)
         update_diary(diary)
         return render_template("add.html", form=form, diary=diary)
     return render_template("add.html", form=form, diary=diary)
