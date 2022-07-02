@@ -68,6 +68,32 @@ class TestRead(FromDB):
         self.assertNotIn(b"<em>2001-01-01</em> - wrong entry", response.data)
 
 
+class TestCreate(FromDB):
+    def test_form(self):
+        response = self.client.get("/create/")
+        self.assertIn(b"<title>Create</title>", response.data)
+        self.assertIn(b"Diary name", response.data)
+
+    def test_create(self):
+        response = self.client.post(
+            "/create/",
+            data={"name": "diary_name", "username": "new_username"},
+        )
+        self.assertIn(b"Redirecting", response.data)
+        self.assertEqual(302, response.status_code)
+        self.assertEqual("/read/new_username", response.location)
+        new_diary = load_diary(DB_ADDRESS, "new_username")
+        self.assertEqual(new_diary.name, "diary_name")
+
+    def test_uniqueness(self):
+        response = self.client.post(
+            "/create/",
+            data={"name": "diary_name", "username": "username"},
+        )
+        self.assertNotIn(b"<h1>diary_name</h1>", response.data)
+        self.assertIn(b"username already taken", response.data)
+
+
 class TestAdd(FromDB):
     def test_form(self):
         response = self.client.get("/add/username")

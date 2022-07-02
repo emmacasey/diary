@@ -1,0 +1,6 @@
+{% extends "page.html" %}
+{% block title %}Create{% endblock %}
+{% block body%}
+{% from "_forms.html" import render_form %}
+{{render_form(form,"create")}}
+{% endblock %}

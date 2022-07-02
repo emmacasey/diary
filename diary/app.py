@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request
+import sqlite3
+from flask import Flask, render_template, request, redirect, url_for
 from wtforms import Form, StringField, TextAreaField, DateField, FloatField
 from wtforms.validators import Optional
 
@@ -25,6 +26,27 @@ def read(username):
 
     diary = load_diary(app.config["DB_ADDRESS"], username)
     return render_template("read.html", diary=diary)
+
+
+class CreateForm(Form):
+    """A wtform to create diary entries, without validation."""
+
+    name = StringField("Diary name")
+    username = StringField("username")
+
+
+@app.route("/create/", methods=["GET", "POST"])
+def create():
+    """Create a new diary associated with a user in the database and then save it"""
+    form = CreateForm(request.form)
+    if request.method == "POST" and form.validate():
+        diary = Diary(form.name.data, [])
+        try:
+            create_diary(app.config["DB_ADDRESS"], diary, form.username.data)
+            return redirect(url_for("read", username=form.username.data))
+        except sqlite3.IntegrityError:
+            form.username.errors.append("username already taken")
+    return render_template("create.html", form=form)
 
 
 class AddForm(Form):

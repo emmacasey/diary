@@ -1,9 +1,9 @@
 {% extends "page.html" %}
-{% block title %}Create{% endblock %}
+{% block title %}Write{% endblock %}
 {% block body%}
 <h1>{{diary.name}}</h1>
 {% from "_forms.html" import render_form %}
-{{render_form(form,"create")}}
+{{render_form(form,"write")}}
 <ul>
     {% for entry in diary.entries %}
     <li><em>{{entry.timestamp}}</em> - {{entry.text}} {% for metric, value in entry['metrics'].items() %}
