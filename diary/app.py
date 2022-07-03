@@ -10,7 +10,7 @@ from wtforms.validators import Optional
 
 from diary.core import Diary
 from diary.db import create_diary, load_diary, update_diary
-from diary.nlp import stats
+from diary.nlp import stats, sentiment
 from diary.search import date_filter, metric_filter, strict_search
 
 app = Flask(__name__)
@@ -42,14 +42,28 @@ def plot_to_base64(X, Y) -> str:
     return base64.b64encode(buf.getbuffer()).decode("ascii")
 
 
-@app.route("/graphs")
-def demo_graph():
-    """Make graphs of metrics and stats from the diary saved at tests/dracula.diary"""
-    with open("tests/dracula.diary", "r") as f:
-        diary = Diary.load(f)
+@app.route("/mood/username")
+def mood(username):
+    """Make graphs of mood from the diary for the user"""
+    diary = load_diary(username)
+    X = []
+    Y = []
+    for entry in diary.entries:
+        X.append(entry.time)
+        Y.append(sentiment(entry.texts)["compound"])
+
+    graph = plot_to_base64(X, Y)
+
+    return render_template("graphs.html", diary=diary, graph=graph)
+
+
+@app.route("/metrics/username")
+def metrics(username):
+    """Make graphs of metrics from the diary for the user"""
+    diary = load_diary(username)
     metrics: dict[str, tuple[list[datetime], list[float]]] = {}
     for entry in diary.entries:
-        entry_stats = stats(entry.text) | entry.metrics
+        entry_stats = entry.metrics
         for metric, value in entry_stats.items():
             try:
                 metrics[metric][0].append(entry.time)
