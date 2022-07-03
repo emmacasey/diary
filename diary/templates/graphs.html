@@ -1,0 +1,12 @@
+{% extends "page.html" %}
+{% block title %}Read{% endblock %}
+{% block body%}
+<h1>{{diary.name}}</h1>
+
+{% for metric, image in graphs.items() %}
+<h2>{{metric}}</h2>
+<img src='data:image/png;base64,{{image}}' />
+
+{% endfor %}
+
+{% endblock %}

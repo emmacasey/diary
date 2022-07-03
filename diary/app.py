@@ -1,12 +1,17 @@
+import base64
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for
-from wtforms import Form, StringField, TextAreaField, DateField, FloatField
+from datetime import datetime
+from io import BytesIO
+
+from flask import Flask, redirect, render_template, request, url_for
+from matplotlib.figure import Figure
+from wtforms import DateField, FloatField, Form, StringField, TextAreaField
 from wtforms.validators import Optional
 
 from diary.core import Diary
 from diary.db import create_diary, load_diary, update_diary
-from diary.search import strict_search, date_filter, metric_filter
-
+from diary.nlp import stats, sentiment
+from diary.search import date_filter, metric_filter, strict_search
 
 app = Flask(__name__)
 
@@ -26,6 +31,51 @@ def read(username):
 
     diary = load_diary(app.config["DB_ADDRESS"], username)
     return render_template("read.html", diary=diary)
+
+
+def plot_to_base64(X, Y) -> str:
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot(X, Y)
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    return base64.b64encode(buf.getbuffer()).decode("ascii")
+
+
+@app.route("/mood/username")
+def mood(username):
+    """Make graphs of mood from the diary for the user"""
+    diary = load_diary(username)
+    X = []
+    Y = []
+    for entry in diary.entries:
+        X.append(entry.time)
+        Y.append(sentiment(entry.texts)["compound"])
+
+    graph = plot_to_base64(X, Y)
+
+    return render_template("graphs.html", diary=diary, graph=graph)
+
+
+@app.route("/metrics/username")
+def metrics(username):
+    """Make graphs of metrics from the diary for the user"""
+    diary = load_diary(username)
+    metrics: dict[str, tuple[list[datetime], list[float]]] = {}
+    for entry in diary.entries:
+        entry_stats = entry.metrics
+        for metric, value in entry_stats.items():
+            try:
+                metrics[metric][0].append(entry.time)
+                metrics[metric][1].append(value)
+            except KeyError:
+                metrics[metric] = ([entry.time], [value])
+
+    graphs: dict[str, str] = {}
+    for metric, (X, Y) in metrics.items():
+        graphs[metric] = plot_to_base64(X, Y)
+
+    return render_template("graphs.html", diary=diary, graphs=graphs)
 
 
 class CreateForm(Form):
