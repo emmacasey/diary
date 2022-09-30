@@ -10,7 +10,7 @@ fonttools==4.33.3
 iniconfig==1.1.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
-joblib==1.1.0
+joblib==1.2.0
 kiwisolver==1.4.3
 MarkupSafe==2.1.1
 matplotlib==3.5.2
